@@ -1,1 +1,528 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>计量经济学知识图谱</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Exo 2', sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: #e0f7fa;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: auto;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+        }
+        
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            color: #4fc3f7;
+            text-shadow: 0 0 10px rgba(79, 195, 247, 0.7);
+            letter-spacing: 2px;
+        }
+        
+        .description {
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto;
+            color: #b2ebf2;
+            line-height: 1.6;
+        }
+        
+        .mindmap-container {
+            display: flex;
+            justify-content: center;
+            padding: 30px 0;
+        }
+        
+        .mindmap {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 25px;
+            perspective: 1000px;
+        }
+        
+        .node {
+            background: rgba(13, 19, 33, 0.8);
+            border-radius: 10px;
+            padding: 20px;
+            width: 280px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(79, 195, 247, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .node::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #00bcd4, #3a1c71);
+        }
+        
+        .node:hover {
+            transform: translateY(-8px) rotateX(5deg);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 20px rgba(58, 28, 113, 0.4);
+            border-color: #4fc3f7;
+        }
+        
+        .node-primary {
+            background: linear-gradient(135deg, rgba(13, 19, 33, 0.9), rgba(26, 35, 126, 0.8));
+            transform: scale(1.05);
+            z-index: 10;
+        }
+        
+        .node-primary:hover {
+            transform: scale(1.05) translateY(-8px) rotateX(5deg);
+        }
+        
+        .node-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.4rem;
+            color: #4fc3f7;
+            margin-bottom: 20px;
+            text-shadow: 0 0 8px rgba(79, 195, 247, 0.5);
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(79, 195, 247, 0.3);
+        }
+        
+        .node-content {
+            padding: 0 10px;
+        }
+        
+        .sub-node {
+            margin-bottom: 18px;
+            padding-left: 15px;
+            border-left: 2px solid #7e57c2;
+        }
+        
+        .sub-node-title {
+            font-size: 1.1rem;
+            color: #7e57c2;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+        
+        .concept-list {
+            list-style-type: none;
+        }
+        
+        .concept-item {
+            margin-bottom: 12px;
+            padding: 10px;
+            background: rgba(38, 50, 65, 0.4);
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+        
+        .concept-item:hover {
+            background: rgba(58, 28, 113, 0.3);
+            transform: translateX(5px);
+        }
+        
+        .concept-link {
+            color: #e0f7fa;
+            text-decoration: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .concept-link:hover {
+            color: #4fc3f7;
+        }
+        
+        .link-icon {
+            color: #00bcd4;
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+        
+        .connections {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            color: #b2ebf2;
+            font-size: 0.9rem;
+            border-top: 1px solid rgba(0, 255, 255, 0.2);
+        }
+        
+        @media (max-width: 1200px) {
+            .mindmap {
+                gap: 20px;
+            }
+            
+            .node {
+                width: 250px;
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .mindmap {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .node {
+                width: 90%;
+                max-width: 500px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .description {
+                font-size: 1rem;
+            }
+            
+            .node-title {
+                font-size: 1.2rem;
+            }
+            
+            .sub-node-title {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>计量经济学知识图谱</h1>
+            <p class="description">探索计量经济学的核心概念与方法，构建数据分析和经济建模的坚实基础。点击带链接的概念可访问相关学习资源。</p>
+        </header>
+        
+        <div class="mindmap-container">
+            <div class="mindmap">
+                <!-- 描述性统计 -->
+                <div class="node node-primary">
+            <div class="node-header">
+                <h2 class="node-title">一、描述性统计</h2>
+                <a class="node-link" href="https://github.com/xuyonghao007/-/blob/%E8%AF%BE%E7%A8%8B%E4%BB%A3%E7%A0%81%E5%BA%93/Class%202-1%20Statistical%20Foundations.ipynb" target="_blank" title="查看统计基础代码示例">
+                    <span class="link-icon">📊</span>
+                    <span class="link-text">代码示例</span>
+                </a>
+            </div>
+                    <div class="node-content">
+                        <div class="sub-node">
+                            <h3 class="sub-node-title">1.1 集中趋势</h3>
+                            <ul class="concept-list">
+                                <li class="concept-item">
+                                    <a href="https://www.bilibili.com/video/BV1uWanzgEDA/" class="concept-link" target="_blank">
+                                        均值 (Mean) <span class="link-icon">↗</span>
+                                    </a>
+                                </li>
+                                <li class="concept-item">
+                                    <a href="https://www.bilibili.com/video/BV1uWanzgEDA/" class="concept-link" target="_blank">
+                                        中位数 (Median) <span class="link-icon">↗</span>
+                                    </a>
+                                </li>
+                                <li class="concept-item">
+                                    <a href="https://www.bilibili.com/video/BV1uWanzgEDA/" class="concept-link" target="_blank">
+                                        众数 (Mode) <span class="link-icon">↗</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="sub-node">
+                            <h3 class="sub-node-title">1.2 离散程度</h3>
+                            <ul class="concept-list">
+                                <li class="concept-item">
+                                    <a href="https://www.bilibili.com/video/BV18WanzgEFB/" class="concept-link" target="_blank">
+                                        标准差 (Standard Deviation) <span class="link-icon">↗</span>
+                                    </a>
+                                </li>
+                                <li class="concept-item">
+                                    <a href="https://www.bilibili.com/video/BV18WanzgEFB/" class="concept-link" target="_blank">
+                                        方差 (Variance) <span class="link-icon">↗</span>
+                                    </a>
+                                </li>
+                                <li class="concept-item">
+                                    <a href="https://www.bilibili.com/video/BV1SWanzuEQe/" class="concept-link" target="_blank">
+                                        极差 (Range) <span class="link-icon">↗</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="sub-node">
+                            <h3 class="sub-node-title">1.3 分布形态</h3>
+                            <ul class="concept-list">
+                                <li class="concept-item">偏度 (Skewness)</li>
+                                <li class="concept-item">峰度 (Kurtosis)</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="sub-node">
+                            <h3 class="sub-node-title">1.4 相关性分析</h3>
+                            <ul class="concept-list">
+                                <li class="concept-item">
+                                    <a href="https://www.bilibili.com/video/BV1TtanzqEdN/" class="concept-link" target="_blank">
+                                        Pearson相关系数 <span class="link-icon">↗</span>
+                                    </a>
+                                </li>
+                                <li class="concept-item">
+                                    <a href="https://www.bilibili.com/video/BV1TtanzqEdN/" class="concept-link" target="_blank">
+                                        Spearman相关系数 <span class="link-icon">↗</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 数据可视化 -->
+               <div class="node">
+                <h2 class="node-title">二、数据可视化</h2>
+                <a class="node-link" href="https://github.com/xuyonghao007/-/blob/%E8%AF%BE%E7%A8%8B%E4%BB%A3%E7%A0%81%E5%BA%93/Class%202-2%20Graphics.ipynb" target="_blank" title="查看统计基础代码示例">
+                    <span class="link-icon">📊</span>
+                    <span class="link-text">代码示例</span>
+                </a>
+                    <div class="node-content">
+                        <div class="sub-node">
+                            <h3 class="sub-node-title">2.1 单变量分布可视化</h3>
+                            <ul class="concept-list">
+                                <li class="concept-item">
+                                    <a href="https://www.bilibili.com/video/BV1ttanzqEss/" class="concept-link" target="_blank">
+                                        直方图 (Histogram) <span class="link-icon">↗</span>
+                                    </a>
+                                </li>
+                                <li class="concept-item">
+                                    <a href="https://www.bilibili.com/video/BV1ttanzqEss/" class="concept-link" target="_blank">
+                                        密度图 (Density Plot) <span class="link-icon">↗</span>
+                                    </a>
+                                </li>
+                                <li class="concept-item">
+                                    <a href="https://www.bilibili.com/video/BV1ttanzqEss/" class="concept-link" target="_blank">
+                                        箱线图 (Box Plot) <span class="link-icon">↗</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="sub-node">
+                            <h3 class="sub-node-title">2.2 双变量关系可视化</h3>
+                            <ul class="concept-list">
+                                <li class="concept-item">
+                                    <a href="https://www.bilibili.com/video/BV1U4anzTEMB/" class="concept-link" target="_blank">
+                                        散点图 (Scatter Plot) <span class="link-icon">↗</span>
+                                    </a>
+                                </li>
+                                <li class="concept-item">
+                                    <a href="https://www.bilibili.com/video/BV1U4anzTEMB/" class="concept-link" target="_blank">
+                                        折线图 (Line Plot) <span class="link-icon">↗</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="sub-node">
+                            <h3 class="sub-node-title">2.3 分类变量对比可视化</h3>
+                            <ul class="concept-list">
+                                <li class="concept-item">
+                                    <a href="https://www.bilibili.com/video/BV1U4anzTEMB/" class="concept-link" target="_blank">
+                                        条形图 (Bar Chart) <span class="link-icon">↗</span>
+                                    </a>
+                                </li>
+                                <li class="concept-item">
+                                    <a href="https://www.bilibili.com/video/BV1U4anzTEMB/" class="concept-link" target="_blank">
+                                        分组柱状图 (Grouped Bar Chart) <span class="link-icon">↗</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="sub-node">
+                            <h3 class="sub-node-title">2.4 高级可视化</h3>
+                            <ul class="concept-list">
+                                <li class="concept-item">
+                                    <a href="https://www.bilibili.com/video/BV1U4anzTEMB/" class="concept-link" target="_blank">
+                                        热力图 (Heatmap) <span class="link-icon">↗</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 概率论基础 -->
+                <div class="node">
+                <h2 class="node-title">三、概率论基础</h2>
+                <a class="node-link" href="https://github.com/xuyonghao007/-/blob/%E8%AF%BE%E7%A8%8B%E4%BB%A3%E7%A0%81%E5%BA%93/Class%202-3%20group%20comparison.ipynb" target="_blank" title="查看代码示例">
+                    <span class="link-icon">📊</span>
+                    <span class="link-text">代码示例</span>
+                </a>
+                    <div class="node-content">
+                        <div class="sub-node">
+                            <h3 class="sub-node-title">3.1 统计定理</h3>
+                            <ul class="concept-list">
+                                <li class="concept-item">
+                                    <a href="https://www.bilibili.com/video/BV1U4anzTEVX/" class="concept-link" target="_blank">
+                                        大数定律 (Law of Large Numbers) <span class="link-icon">↗</span>
+                                    </a>
+                                </li>
+                                <li class="concept-item">
+                                    <a href="https://www.bilibili.com/video/BV1U4anzTEVX/" class="concept-link" target="_blank">
+                                        中心极限定理 (Central Limit Theorem) <span class="link-icon">↗</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="sub-node">
+                            <h3 class="sub-node-title">3.2 常用概率分布</h3>
+                            <ul class="concept-list">
+                                <li class="concept-item">
+                                    <a href="https://www.bilibili.com/video/BV1m4anzTE2b/" class="concept-link" target="_blank">
+                                        正态分布 (Normal Distribution) <span class="link-icon">↗</span>
+                                    </a>
+                                </li>
+                                <li class="concept-item">
+                                    <a href="https://www.bilibili.com/video/BV1m4anzTE2b/" class="concept-link" target="_blank">
+                                        t分布 (t-Distribution) <span class="link-icon">↗</span>
+                                    </a>
+                                </li>
+                                <li class="concept-item">卡方分布 (Chi-squared Distribution)</li>
+                                <li class="concept-item">F分布 (F-Distribution)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 数据预处理 -->
+                <div class="node">
+                    <h2 class="node-title">四、数据预处理</h2>
+                <a class="node-link" href="https://github.com/xuyonghao007/-/blob/%E8%AF%BE%E7%A8%8B%E4%BB%A3%E7%A0%81%E5%BA%93/Class%202-3%20group%20comparison.ipynb" target="_blank" title="查看代码示例">
+                    <span class="link-icon">📊</span>
+                    <span class="link-text">代码示例</span>
+                </a>
+                    <div class="node-content">
+                        <div class="sub-node">
+                            <h3 class="sub-node-title">4.1 异常值处理</h3>
+                            <ul class="concept-list">
+                                <li class="concept-item">
+                                    <a href="https://www.bilibili.com/video/BV1M4anzMEB5/" class="concept-link" target="_blank">
+                                        缩尾处理 (Winsorizing) <span class="link-icon">↗</span>
+                                    </a>
+                                </li>
+                                <li class="concept-item">
+                                    <a href="https://www.bilibili.com/video/BV1M4anzMEB5/" class="concept-link" target="_blank">
+                                        截尾处理 (Trimming) <span class="link-icon">↗</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="sub-node">
+                            <h3 class="sub-node-title">4.2 数据变换与标准化</h3>
+                            <ul class="concept-list">
+                                <li class="concept-item">
+                                    <a href="https://www.bilibili.com/video/BV1M4anzMEB5/" class="concept-link" target="_blank">
+                                        标准化 (Standardization) <span class="link-icon">↗</span>
+                                    </a>
+                                </li>
+                                <li class="concept-item">
+                                    <a href="https://www.bilibili.com/video/BV1M4anzMEB5/" class="concept-link" target="_blank">
+                                        归一化 (Normalization) <span class="link-icon">↗</span>
+                                    </a>
+                                </li>
+                                <li class="concept-item">
+                                    <a href="https://www.bilibili.com/video/BV1M4anzMEB5/" class="concept-link" target="_blank">
+                                        对数化 (Log Transformation) <span class="link-icon">↗</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="sub-node">
+                            <h3 class="sub-node-title">4.3 数据构建</h3>
+                            <ul class="concept-list">
+                                <li class="concept-item">
+                                    <a href="https://www.bilibili.com/video/BV1m4anzTE2A/" class="concept-link" target="_blank">
+                                        数据合并(merge) <span class="link-icon">↗</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>计量经济学知识图谱 &copy; 2023 | 设计灵感来源于科幻与未来科技</p>
+        </footer>
+    </div>
 
+    <script>
+        // 添加一些简单的交互效果
+        document.addEventListener('DOMContentLoaded', function() {
+            const nodes = document.querySelectorAll('.node');
+            
+            nodes.forEach(node => {
+                node.addEventListener('mouseenter', () => {
+                    node.style.zIndex = 20;
+                });
+                
+                node.addEventListener('mouseleave', () => {
+                    node.style.zIndex = '';
+                });
+            });
+            
+            // 为所有概念项添加点击效果
+            const conceptItems = document.querySelectorAll('.concept-item');
+            conceptItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    if(e.target.tagName !== 'A') {
+                        this.style.backgroundColor = 'rgba(58, 28, 113, 0.5)';
+                        setTimeout(() => {
+                            this.style.backgroundColor = '';
+                        }, 300);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
